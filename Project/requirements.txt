@@ -6,4 +6,4 @@ altair
 scipy
 seaborn
 matplotlib
-sklearn
+
