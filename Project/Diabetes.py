@@ -7,7 +7,6 @@ import plotly.graph_objs as go
 from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import plotly.tools as tls
 import plotly.figure_factory as ff
-py.init_notebook_mode(connected=True)
 import squarify
 import altair as alt
 import plotly.express as px
