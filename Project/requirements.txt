@@ -9,3 +9,4 @@ matplotlib
 plotly
 squarify
 hiplot 
+plotly.offline
