@@ -6,4 +6,6 @@ altair
 scipy
 seaborn
 matplotlib
-
+plotly
+squarify
+hiplot 
