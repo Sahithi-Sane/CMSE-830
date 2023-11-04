@@ -247,7 +247,7 @@ There are 3 outliers on the boxplot which we can neglect.
                     
                     ''')
 
-# Function for Multivariate analysis graphs with Oucome
+# Function for Multivariate analysis graphs with Outcome
 def create_histplot(df, x_column, outcome_column = "Outcome", figsize=(20, 8), multiple="dodge", kde=True):
     fig, ax = plt.subplots(figsize=figsize)
     sns.histplot(data=df, x=x_column, hue=outcome_column, shrink=0.8, multiple=multiple, kde=kde, ax=ax)
@@ -259,7 +259,7 @@ def multi_eda():
     
     if data_button == 'Pregnancies':
         create_histplot(df_data, "Pregnancies")
-        st.markdown('''''')
+        st.markdown(''' We can observe that a potential correlation between the number of pregnancies and the likelihood of a diabetic outcome''')
 
     elif data_button == 'Glucose':
         create_histplot(df_data, "Glucose")
