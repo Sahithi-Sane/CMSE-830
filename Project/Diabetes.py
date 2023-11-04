@@ -270,6 +270,11 @@ def multi_eda():
 -> There is a significant amount of positive linear correlation.
                     
                     ''')
+    elif data_button == 'BloodPressure':
+        create_histplot(df_data, "BloodPressure")       
+        st.markdown('''We observe that, Outcome and BloodPressure do NOT have a positive or negative linear correlation. The value of Outcome do not increase linearly as value of BloodPressure increases.However, for BloodPressure values greater than 82, count of patients with Outcome as 1, is more.
+                    
+                    ''')
 
     elif data_button == 'SkinThickness':
         create_histplot(df_data, "SkinThickness")
