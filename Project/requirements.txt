@@ -9,4 +9,7 @@ matplotlib
 plotly
 squarify
 hiplot 
-
+scikit-learn
+yellowbrick
+lightgbm
+xgboost
