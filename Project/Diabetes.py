@@ -12,6 +12,37 @@ import altair as alt
 import plotly.express as px
 import streamlit as st
 import hiplot as hip
+from plotly.subplots import make_subplots
+py.init_notebook_mode(connected=True)
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
+
+from scipy.stats import randint as sp_randint
+from scipy.stats import uniform as sp_uniform
+from yellowbrick.classifier import DiscriminationThreshold
+import lightgbm as lgbm
+from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import KFold
+from scipy import interp
+from sklearn.model_selection import cross_val_predict
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import cross_validate
+import plotly.graph_objects as go
+from sklearn.metrics import roc_curve, precision_recall_curve, auc, confusion_matrix, accuracy_score,make_scorer
+from sklearn.metrics import precision_score, recall_score, f1_score
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
+from sklearn.metrics import roc_auc_score
+
+
+
 
 #------------------------------------------------------------------------------------------------------------------------------------------
 st.title('Diabetis Dataset')
@@ -20,23 +51,19 @@ st.divider()
 
 # Load the dataset into the dataframe
 df_data = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/diabetes.csv')
+#csvFile = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/ensembling.csv')
 df_temp = df_data
+
+def load_weights_from_github(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.content
+    else:
+        st.error(f"Failed to fetch weights from {url}")
+        return None
 
 D = df_data[(df_data['Outcome'] != 0)]
 H = df_data[(df_data['Outcome'] == 0)]
-
-def my_function():
-    st.caption("Heart Disease Data Visualization")
-    selected_variable = st.selectbox("Select the desired variable", df_data.columns)
-    scatter_plot = alt.Chart(df_data).mark_circle(size=60, opacity=0.7).encode(
-        x=selected_variable,
-        y='Outcome:N',
-        tooltip=[selected_variable, 'Outcome']
-    ).properties(
-        width=600,
-        height=400
-    )
-    st.write(scatter_plot)
 
 # Missing Value analysis functions
 def missing_plot(dataset, key):
@@ -259,7 +286,7 @@ def multi_eda():
     
     if data_button == 'Pregnancies':
         create_histplot(df_data, "Pregnancies")
-        st.markdown(''' We can observe that a potential correlation between the number of pregnancies and the likelihood of a diabetic outcome''')
+        st.markdown('''''')
 
     elif data_button == 'Glucose':
         create_histplot(df_data, "Glucose")
@@ -270,6 +297,7 @@ def multi_eda():
 -> There is a significant amount of positive linear correlation.
                     
                     ''')
+
     elif data_button == 'BloodPressure':
         create_histplot(df_data, "BloodPressure")       
         st.markdown('''We observe that, Outcome and BloodPressure do NOT have a positive or negative linear correlation. The value of Outcome do not increase linearly as value of BloodPressure increases.However, for BloodPressure values greater than 82, count of patients with Outcome as 1, is more.
@@ -282,6 +310,7 @@ def multi_eda():
     elif data_button == 'Insulin':
         create_histplot(df_data, "Insulin")
         st.markdown('''A positive linear correlation is evident for Insuline''')
+
     elif data_button == 'BMI':
         create_histplot(df_data, "BMI")
         st.markdown('''A positive linear correlation is evident for BMI''')
@@ -332,6 +361,198 @@ def save_hiplot_to_html(exp):
     output_file = "hiplot_plot_1.html"
     exp.to_html(output_file)
     return output_file        
+
+# Score table for LightGBM
+def scores_table(model, subtitle):
+    scores = ['accuracy', 'precision', 'recall', 'f1', 'roc_auc']
+    res = []
+    for sc in scores:
+        scores = cross_val_score(model, X, y, cv = 5, scoring = sc)
+        res.append(scores)
+    df = pd.DataFrame(res).T
+    df.loc['mean'] = df.mean()
+    df.loc['std'] = df.std()
+    df= df.rename(columns={0: 'accuracy', 1:'precision', 2:'recall',3:'f1',4:'roc_auc'})
+
+    trace = go.Table(
+        header=dict(values=['<b>Fold', '<b>Accuracy', '<b>Precision', '<b>Recall', '<b>F1 score', '<b>Roc auc'],
+                    line = dict(color='#7D7F80'),
+                    fill = dict(color='#a1c3d1'),
+                    align = ['center'],
+                    font = dict(size = 15)),
+        cells=dict(values=[('1','2','3','4','5','mean', 'std'),
+                           np.round(df['accuracy'],3),
+                           np.round(df['precision'],3),
+                           np.round(df['recall'],3),
+                           np.round(df['f1'],3),
+                           np.round(df['roc_auc'],3)],
+                   line = dict(color='#7D7F80'),
+                   fill = dict(color='#EDFAFF'),
+                   align = ['center'], font = dict(size = 15)))
+
+    layout = dict(width=800, height=400, title = '<b>Cross Validation - 5 folds</b><br>'+subtitle, font = dict(size = 15))
+    fig = dict(data=[trace], layout=layout)
+
+    py.iplot(fig, filename = 'styled_table')
+
+# Function for data encoding
+def preprocess_data(df):
+    # Define target and feature columns
+    target_col = ["Outcome"]
+    cat_cols = df.nunique()[df.nunique() < 12].keys().tolist()
+    cat_cols = [x for x in cat_cols]
+    num_cols = [x for x in df.columns if x not in cat_cols + target_col]
+    bin_cols = df.nunique()[df.nunique() == 2].keys().tolist()
+    multi_cols = [i for i in cat_cols if i not in bin_cols]
+
+    # Label encoding for binary columns
+    le = LabelEncoder()
+    for i in bin_cols:
+        df[i] = le.fit_transform(df[i])
+
+    # One-hot encoding for multi-value columns
+    df = pd.get_dummies(data=df, columns=multi_cols)
+
+    # Scaling numerical columns
+    std = StandardScaler()
+    scaled = std.fit_transform(df[num_cols])
+    scaled = pd.DataFrame(scaled, columns=num_cols)
+
+    # Drop original values and merge scaled values for numerical columns
+    df_og = df.copy()
+    df = df.drop(columns=num_cols, axis=1)
+    df = df.merge(scaled, left_index=True, right_index=True, how="left")
+
+    return df, df_og
+
+# Encoding for the dataset
+def encoding():
+    st.markdown('''StandardScaler :
+    - Standardize features by removing the mean and scaling to unit variance : Centering and scaling happen independently on each feature by computing the relevant statistics on the samples in the set. Mean and standard deviation are then stored to be used on later data using the transform method. Standardization of a dataset is a common requirement for many machine learning estimators: they might behave badly if the individual features do not more or less look like standard normally distributed data (e.g. Gaussian with 0 mean and unit variance)''')
+    st.markdown('''
+                   LabelEncoder : 
+    - Encode labels with value between 0 and n_classes-1.
+                ''')
+    df_processed, df_og = preprocess_data(df_data)
+
+    # Display processed data
+    st.subheader("Processed Data")
+    st.caption("View the first 10 rows of the dataset")
+    st.table(df_processed.head(10))
+
+# Plots for the models
+def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
+    # Train the classifier
+    model.fit(train_X, train_y)
+
+    # Predict on the test set
+    y_pred_model = model.predict(test_X)
+
+    # Calculate metrics
+    ac = accuracy_score(test_y, y_pred_model)
+    rc = roc_auc_score(test_y, y_pred_model)
+    prec = precision_score(test_y, y_pred_model)
+    rec = recall_score(test_y, y_pred_model)
+    f1 = f1_score(test_y, y_pred_model)
+
+    # Confusion Matrix
+    cm = confusion_matrix(test_y, y_pred_model)
+
+    # ROC Curve
+    fpr, tpr, _ = roc_curve(test_y, model.predict_proba(test_X)[:, 1])
+    roc_auc = auc(fpr, tpr)
+
+    # Precision-Recall Curve
+    precision, recall, _ = precision_recall_curve(test_y, model.predict_proba(test_X)[:, 1])
+    pr_auc = auc(recall, precision)
+
+    # Create Plots
+    # Confusion Matrix Heatmap
+    fig_cm = go.Figure()
+    fig_cm.add_trace(go.Heatmap(z=cm[::-1], x=['Predicted 0', 'Predicted 1'], y=['Actual 1', 'Actual 0'],
+                                colorscale='Viridis', showscale=False))
+    fig_cm.update_layout(title='Confusion Matrix', xaxis=dict(title='Predicted Class'), yaxis=dict(title='Actual Class'))
+
+    # ROC Curve
+    fig_roc = go.Figure()
+    fig_roc.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name='ROC curve (AUC={:.2f})'.format(roc_auc)))
+    fig_roc.update_layout(title='Receiver Operating Characteristic (ROC) Curve',
+                          xaxis=dict(title='False Positive Rate'),
+                          yaxis=dict(title='True Positive Rate'),
+                          showlegend=True)
+
+    # Precision-Recall Curve
+    fig_pr = go.Figure()
+    fig_pr.add_trace(go.Scatter(x=recall, y=precision, mode='lines', name='Precision-Recall curve (AUC={:.2f})'.format(pr_auc)))
+    fig_pr.update_layout(title='Precision-Recall Curve',
+                         xaxis=dict(title='Recall'),
+                         yaxis=dict(title='Precision'),
+                         showlegend=True)
+
+    # Metrics Bar Graph
+    metrics_labels = ['Accuracy', 'ROC AUC', 'Precision', 'Recall', 'F1-Score']
+    metrics_values = [ac, rc, prec, rec, f1]
+
+    fig_metrics = go.Figure()
+    fig_metrics.add_trace(go.Bar(x=metrics_labels, y=metrics_values, name='Metrics'))
+    fig_metrics.update_layout(barmode='group', xaxis=dict(title='Metrics'), yaxis=dict(title='Value'))
+
+    return fig_cm, fig_roc, fig_pr, fig_metrics
+
+# Model training, metrics
+def model_analysis():
+    X = df_data.drop('Outcome', axis=1)
+    y = df_data['Outcome']
+    train_X,test_X,train_y,test_y=train_test_split(X,y,test_size=0.2)
+    st.markdown("There are 9 different models and their performance metrics to compare and see which is best for the prediction.")
+
+    # Load or generate your data here
+    # For demonstration purposes, let's create some random data
+    np.random.seed(42)
+    train_X = np.random.rand(100, 5)
+    train_y = np.random.randint(0, 2, 100)
+    test_X = np.random.rand(50, 5)
+    test_y = np.random.randint(0, 2, 50)
+
+    # Model selection
+    data_button = st.selectbox('Please choose preferred Model to get the anaysis', ["Logistic Regression", "Random Forest","Support Vector Machine","K Nearest Neighbour","Naive Bayes","Gradient Boosting Classifier","Decision Tree","XG Boost","LightGBM"])
+    if  data_button =="Logistic Regression":
+        model = LogisticRegression()
+    elif  data_button == "Random Forest":
+        model = RandomForestClassifier()
+    elif  data_button == "Support Vector Machine":
+        model = SVC(kernel='linear')
+    elif  data_button == "K Nearest Neighbour":
+        model = KNeighborsClassifier(n_neighbors=3)
+    elif  data_button == "Naive Bayes":
+        model = GaussianNB()
+    elif  data_button == "Gradient Boosting Classifier":
+        model = GradientBoostingClassifier(n_estimators=50,learning_rate=0.2)
+    elif  data_button == "Decision Tree":
+        model = RandomForestClassifier(n_estimators = 11, criterion = 'entropy', random_state = 42)
+    elif  data_button == "XG Boost":
+        model = XGBClassifier()
+    elif  data_button == "LightGBM":
+        model = XGBClassifier()    
+    else:
+        st.error("Invalid model selection.")
+
+    # Calculate metrics and create plots
+    fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots(model, train_X, train_y, test_X, test_y)
+
+    # Display Plots
+    st.subheader("Confusion Matrix")
+    st.plotly_chart(fig_cm)
+
+    st.subheader("ROC Curve")
+    st.plotly_chart(fig_roc)
+
+    st.subheader("Precision-Recall Curve")
+    st.plotly_chart(fig_pr)
+
+    st.subheader("Metrics Bar Graph")
+    st.plotly_chart(fig_metrics)
+
 
 # Exploratory Data Analsis
 def eda():
@@ -403,26 +624,41 @@ def eda():
             st.components.v1.html(open(hiplot_html_file, 'r').read(),width =900, height=600, scrolling=True)
         else:
             st.write("No data selected. Please choose at least one column to visualize.")
+    
+    if st.checkbox('StandardScaler and LabelEncoder'):
+        encoding()
+
+    if st.checkbox('Models'):
+        model_analysis()
+    
+    if st.checkbox('Ensembling'):
+        st.write('Heatmap and other metrix for Ensembled model with Maximum Voting of 9 Models.')
         
+        
+
+def bio():
+    fgd
+
 # Function for the Prediction of the reults using ML Models
 def predict():
     st.sidebar.header('Diabetes Prediction')
     st.markdown('This trained dataset is originally from the Pima Indians Diabetes dataset. The objective is to predict based on diagnostic measurements whether a patient has diabetes.')
     
     name = st.text_input("Name:")
+
     pregnancy = st.number_input("No. of times pregnant:")
     st.markdown('Pregnancies: Number of times pregnant')
 
-    glucose = st.number_input("Plasma Glucose Concentration :")
+    glucose = st.number_input("Plasma Glucose Level :")
     st.markdown('Glucose: Plasma glucose concentration a 2 hours in an oral glucose tolerance test')
 
-    bp =  st.number_input("Diastolic blood pressure (mm Hg):")
+    bp =  st.number_input("Blood pressure (mm Hg):")
     st.markdown('BloodPressure: Diastolic blood pressure (mm Hg)')
 
     skin = st.number_input("Triceps skin fold thickness (mm):")
     st.markdown('SkinThickness: Triceps skin fold thickness (mm)')
 
-    insulin = st.number_input("2-Hour serum insulin (mu U/ml):")
+    insulin = st.number_input("Serum insulin (mu U/ml):")
     st.markdown('Insulin: 2-Hour serum insulin (mu U/ml)')
 
     bmi = st.number_input("Body mass index (weight in kg/(height in m)^2):")
@@ -438,7 +674,12 @@ def predict():
     st.markdown('Outcome: Class variable (0 or 1)')
 
     if submit:
-        prediction = classifier.predict([[pregnancy, glucose, bp, skin, insulin, bmi, dpf, age]])
+        X = df_data.drop('Outcome', axis=1)
+        y = df_data['Outcome']
+        train_X,test_X,train_y,test_y=train_test_split(X,y,test_size=0.2)
+        model = RandomForestClassifier()
+        model.fit(train_X,train_y)
+        prediction = model.predict([[pregnancy, glucose, bp, skin, insulin, bmi, dpf, age]])
         if prediction == 0:
             st.write('Congratulation!',name,'You are not diabetic')
         else:
@@ -464,7 +705,7 @@ The main aim is to make use of significant features, design a prediction algorit
     """)
     st.sidebar.title("Diabetes Predection")
     choice = st.sidebar.selectbox(
-        "MODE", ("About", "Exploratory Data Analysis", "Predict Diabetes"))
+        "MODE", ("About", "Exploratory Data Analysis", "Predict Diabetes", "Bio"))
     if choice == "Exploratory Data Analysis":
         read_me_0.empty()
         read_me.empty()
@@ -481,7 +722,11 @@ The main aim is to make use of significant features, design a prediction algorit
         print()
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
-
-
+    elif choice == "Bio":
+        read_me_0.empty()
+        read_me.empty()
+        bio()    
+        st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
+        sidebar_placeholder = st.sidebar.empty()
 if __name__ == '__main__':
     main()
