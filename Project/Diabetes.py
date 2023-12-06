@@ -14,9 +14,6 @@ import streamlit as st
 import hiplot as hip
 from plotly.subplots import make_subplots
 py.init_notebook_mode(connected=True)
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler
-
 from scipy.stats import randint as sp_randint
 from scipy.stats import uniform as sp_uniform
 from yellowbrick.classifier import DiscriminationThreshold
@@ -40,6 +37,8 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.metrics import roc_auc_score
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
 
 
 
