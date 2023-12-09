@@ -499,7 +499,15 @@ def calculate_metrics_and_plots_interactive(model, test_X, test_y, train_X,train
     ax_metrics.set_ylabel('Score')
 
     return fig, fig_roc, fig_pr, fig_metrics
-
+    
+def calculate_metrics(clf, test_X, test_y):
+    y_pred = clf.predict(test_X)
+    accuracy = accuracy_score(test_y, y_pred)
+    precision = precision_score(test_y, y_pred)
+    recall = recall_score(test_y, y_pred)
+    f1 = f1_score(test_y, y_pred)
+    return accuracy, precision, recall, f1
+    
 # Model training, metrics
 def model_analysis():
     X = df_data.drop('Outcome', axis=1)
@@ -564,6 +572,15 @@ def model_analysis():
 
     st.subheader('Metrics Bar Graph')
     st.pyplot(fig_metrics)
+    # Get metrics values
+    accuracy, precision, recall, f1 = calculate_metrics(clf, test_X, test_y)
+
+    # Display metrics values
+    st.subheader('Metrics Values')
+    st.write(f"Accuracy: {accuracy:.2f}")
+    st.write(f"Precision: {precision:.2f}")
+    st.write(f"Recall: {recall:.2f}")
+    st.write(f"F1 Score: {f1:.2f}")
     
 
 # Exploratory Data Analsis
