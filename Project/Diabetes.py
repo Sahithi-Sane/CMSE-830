@@ -793,16 +793,34 @@ The main aim is to make use of significant features, design a prediction algorit
         read_me_0.empty()
         read_me.empty()
         predict()
+        st.sidebar.write(
+            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
+            "Have you ever wondered what your heart health says about you?"
+            )
+        image_url = "1.png" 
+        st.sidebar.image(image_url, use_column_width=True)
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "About":
         print()
+        st.sidebar.write(
+            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
+            "Have you ever wondered what your heart health says about you?"
+            )
+        image_url = "1.png" 
+        st.sidebar.image(image_url, use_column_width=True)
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "Bio":
         read_me_0.empty()
         read_me.empty()
         bio()    
+        st.sidebar.write(
+            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
+            "Have you ever wondered what your heart health says about you?"
+            )
+        image_url = "1.png" 
+        st.sidebar.image(image_url, use_column_width=True)
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
 if __name__ == '__main__':
