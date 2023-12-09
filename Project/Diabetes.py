@@ -60,29 +60,6 @@ def load_data():
 csvFile = load_data()
 df_temp = df_data
 
-'''
-# Load the Saved Models
-with open("Pickle_dt_clf.pkl", "rb") as file:
-    rf_model = pkl.load(file)
-with open("Pickle_gb_clf.pkl", "rb") as file:
-    gb_model = pkl.load(file)
-with open("Pickle_logestic_clf.pkl", "rb") as file:
-    lr_model = pkl.load(file)
-with open("Pickle_svm_clf.pkl", "rb") as file:
-    svm_model = pkl.load(file)
-with open("Pickle_dt_clf.pkl", "rb") as file:
-    dt_model = pkl.load(file)
-with open("Pickle_lgbm_clf.pkl", "rb") as file:
-    lgbm_model = pkl.load(file)
-with open("Pickle_knn_clf.pkl", "rb") as file:
-    knn_model = pkl.load(file)
-with open("Pickle_nb_clf.pkl", "rb") as file:
-    nb_model = pkl.load(file)
-with open("Pickle_xgb_clf.pkl", "rb") as file:
-    xgb_model = pkl.load(file)
-with open("Pickle_rf_clf.pkl", "rb") as file:
-    rf_model = pkl.load(file)
-'''
 D = df_data[(df_data['Outcome'] != 0)]
 H = df_data[(df_data['Outcome'] == 0)]
 
@@ -477,7 +454,7 @@ def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
 
     # Confusion Matrix
     cm = confusion_matrix(test_y, y_pred_model)
-    confusion_matrix = cm.astype(int)
+    conf_matrix = cm.astype(int)
 
     layout = {
         "title": "Confusion Matrix", 
@@ -485,7 +462,7 @@ def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
         "yaxis": {"title": "Real value"}
     }
 
-    fig = go.Figure(data=go.Heatmap(z=confusion_matrix,
+    fig = go.Figure(data=go.Heatmap(z=conf_matrix,
                                     x=['Actual Diabetic','Actual Non Diabetic'],
                                     y=['Predictid Diabetic','Predicted Non Diabetic'],
                                     hoverongaps=False),
