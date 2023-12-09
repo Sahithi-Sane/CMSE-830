@@ -557,7 +557,7 @@ def model_analysis():
         st.error("Invalid model selection.")
 
     # Calculate metrics and create plots
-    fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots_interactive(clf, test_X, test_y)
+    fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots_interactive(model, test_X, test_y)
     plt.show()
     print("Accuracy: {:.2f}".format(accuracy))
     print("Precision: {:.2f}".format(precision))
