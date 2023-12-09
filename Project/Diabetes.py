@@ -705,7 +705,7 @@ def bio():
     st.write(" ")
     st.write("Feel free to reach out if you have any questions or just want to discuss data science, philosophy, or anything else that piques your curiosity!")
     st.write(" ")
-    st.image('me.png', width=300)
+    st.image('me.jpeg', width=300)
 
 # Function for the Prediction of the reults using ML Models
 def predict():
@@ -714,33 +714,33 @@ def predict():
     
     name = st.text_input("Name:")
 
-    pregnancy = st.number_input("No. of times pregnant:")
     st.markdown('Pregnancies: Number of times pregnant')
-
+    pregnancy = st.number_input("No. of times pregnant:")
+    
+    st.markdown('Glucose: Plasma glucose concentration a 2 hours in an oral glucose tolerance test(Should be aroung 150 generally)')
     glucose = st.number_input("Plasma Glucose Level :")
-    st.markdown('Glucose: Plasma glucose concentration a 2 hours in an oral glucose tolerance test')
 
-    bp =  st.number_input("Blood pressure (mm Hg):")
     st.markdown('BloodPressure: Diastolic blood pressure (mm Hg)')
-
+    bp =  st.number_input("Blood pressure (mm Hg):")
+    
+    st.markdown('SkinThickness: Triceps skin fold thickness (mm) - Women :23.6 ± 7.5 mm and Men :14.3 ± 6.8 mm')
     skin = st.number_input("Triceps skin fold thickness (mm):")
-    st.markdown('SkinThickness: Triceps skin fold thickness (mm)')
-
+    
+    st.markdown('Insulin: 2-Hour serum insulin (mu U/ml) - lower than 140 mg/dL')
     insulin = st.number_input("Serum insulin (mu U/ml):")
-    st.markdown('Insulin: 2-Hour serum insulin (mu U/ml)')
+    
 
     bmi = st.number_input("Body mass index (weight in kg/(height in m)^2):")
     st.markdown('BMI: Body mass index (weight in kg/(height in m)^2)')
 
-    dpf = st.number_input("Diabetes Pedigree Function:")
+    dpf = st.number_input("Diabetes Pedigree Function - Diabetes Pedigree Function is a positively skewed variable with no zero values")
     st.markdown('DiabetesPedigreeFunction: Diabetes pedigree function')
 
     age = st.number_input("Age:")
     st.markdown('Age: Age (years)')
 
     submit = st.button('Predict')
-    st.markdown('Outcome: Class variable (0 or 1)')
-
+    
     if submit:
         X = df_data.drop('Outcome', axis=1)
         y = df_data['Outcome']
