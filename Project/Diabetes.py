@@ -46,9 +46,20 @@ from yellowbrick.classifier import DiscriminationThreshold
 
 
 #------------------------------------------------------------------------------------------------------------------------------------------
-st.title('Diabetis Dataset')
+st.title('DiaPred - Diabetes Prediction Application')
 st.caption('Presented by Sahithi Sane')
 st.divider()
+
+# Load the dataset into the dataframe
+df_data = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/diabetes.csv')
+DATA_URL = ('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/ensembling.csv')
+@st.cache
+def load_data():
+    data = pd.read_csv(DATA_URL, encoding='latin1')
+    return data
+csvFile = load_data()
+df_temp = df_data
+
 '''
 # Load the Saved Models
 with open("Pickle_dt_clf.pkl", "rb") as file:
@@ -72,18 +83,6 @@ with open("Pickle_xgb_clf.pkl", "rb") as file:
 with open("Pickle_rf_clf.pkl", "rb") as file:
     rf_model = pkl.load(file)
 '''
-# Load the dataset into the dataframe
-df_data = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/diabetes.csv')
-DATA_URL = ('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/ensembling.csv')
-@st.cache
-def load_data():
-    data = pd.read_csv(DATA_URL, encoding='latin1')
-    return data
-csvFile = load_data()
-df_temp = df_data
-
-
-
 D = df_data[(df_data['Outcome'] != 0)]
 H = df_data[(df_data['Outcome'] == 0)]
 
@@ -783,7 +782,12 @@ The main aim is to make use of significant features, design a prediction algorit
         read_me_0.empty()
         read_me.empty()
         eda()    
-        st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
+        st.sidebar.write(
+            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
+            "Have you ever wondered what your heart health says about you?"
+            )
+        image_url = "1.png" 
+        st.sidebar.image(image_url, use_column_width=True)
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "Predict Diabetes":
         read_me_0.empty()
