@@ -704,7 +704,13 @@ def bio():
     st.write(" ")
     st.write("Feel free to reach out if you have any questions or just want to discuss data science, philosophy, or anything else that piques your curiosity!")
     st.write(" ")
-    st.image('me.jpeg', width=300)
+    file = 'https://github.com/Sahithi-Sane/CMSE-830/blob/main/Project/me.jpeg'
+    if file is not None:
+        image = Image.open(file)
+        st.image(image,
+                 caption=f"You amazing image has shape",
+                use_column_width=True,)
+   # st.image('me.jpeg', width=300)
 
 # Function for the Prediction of the reults using ML Models
 def predict():
