@@ -560,10 +560,7 @@ def model_analysis():
     # Calculate metrics and create plots
     fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots_interactive(model, test_X, test_y, train_X,train_y)
     plt.show()
-    print("Accuracy: {:.2f}".format(accuracy))
-    print("Precision: {:.2f}".format(precision))
-    print("Recall: {:.2f}".format(recall))
-    print("F1 Score: {:.2f}".format(f1))
+    
 
 # Exploratory Data Analsis
 def eda():
