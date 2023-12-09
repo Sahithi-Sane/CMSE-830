@@ -78,7 +78,6 @@ DATA_URL = ('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Projec
 @st.cache
 def load_data():
     data = pd.read_csv(DATA_URL, encoding='latin1')
-    data['Date'] = pd.to_datetime(data['Date']).dt.strftime('%Y-%m-%d')
     return data
 csvFile = load_data()
 df_temp = df_data
