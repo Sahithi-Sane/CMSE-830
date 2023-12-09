@@ -77,7 +77,7 @@ df_data = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/m
 DATA_URL = ('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/ensembling.csv')
 @st.cache
 def load_data():
-    data = pd.read_csv(DATA_URL, encoding='utf-8')
+    data = pd.read_csv(DATA_URL, encoding='latin1')
     data['Date'] = pd.to_datetime(data['Date']).dt.strftime('%Y-%m-%d')
     return data
 csvFile = load_data()
