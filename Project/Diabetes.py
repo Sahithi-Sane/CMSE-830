@@ -573,7 +573,7 @@ def model_analysis():
     st.subheader('Metrics Bar Graph')
     st.pyplot(fig_metrics)
     # Get metrics values
-    accuracy, precision, recall, f1 = calculate_metrics(clf, test_X, test_y)
+    accuracy, precision, recall, f1 = calculate_metrics(model, test_X, test_y)
 
     # Display metrics values
     st.subheader('Metrics Values')
