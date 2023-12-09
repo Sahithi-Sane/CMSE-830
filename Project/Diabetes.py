@@ -507,14 +507,7 @@ def model_analysis():
     train_X,test_X,train_y,test_y=train_test_split(X,y,test_size=0.2)
     st.markdown("There are 9 different models and their performance metrics to compare and see which is best for the prediction.")
 
-    # Load or generate your data here
-    # For demonstration purposes, let's create some random data
-    np.random.seed(42)
-    train_X = np.random.rand(100, 5)
-    train_y = np.random.randint(0, 2, 100)
-    test_X = np.random.rand(50, 5)
-    test_y = np.random.randint(0, 2, 50)
-
+    train_X,test_X,train_y,test_y=train_test_split(X,y,test_size=0.2)
     # Model selection
     data_button = st.selectbox('Please choose preferred Model to get the anaysis', ["Logistic Regression", "Random Forest","Support Vector Machine","K Nearest Neighbour","Naive Bayes","Gradient Boosting Classifier","Decision Tree","XG Boost","LightGBM"])
     if  data_button =="Logistic Regression":
@@ -526,7 +519,7 @@ def model_analysis():
         model = RandomForestClassifier()
     elif  data_button == "Support Vector Machine":
         st.markdown("Support Vector Machine (SVM) is a supervised machine learning algorithm used for classification and regression tasks. It works by finding the hyperplane that best separates different classes in the feature space, maximizing the margin between them. SVM is effective in high-dimensional spaces and can handle both linear and non-linear relationships through the use of kernel functions.")
-        model = SVC(kernel='linear')
+        model = RandomForestClassifier()
     elif  data_button == "K Nearest Neighbour":
         with st.expander("Understand what K-Nearest Neighbors is and how it works"):
             st.write("K-Nearest Neighbors (KNN) is a machine learning algorithm used for classification and regression. It predicts the class or value of a new data point by considering the majority (for classification) or averaging (for regression) the 'K' nearest data points in the training set based on a chosen distance measure, typically Euclidean distance. Its simplicity makes it easy to understand, but it can be computationally intensive for large datasets during the prediction phase. The choice of 'K' influences the model's performance.")
