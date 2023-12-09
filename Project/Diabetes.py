@@ -49,7 +49,7 @@ from yellowbrick.classifier import DiscriminationThreshold
 st.title('Diabetis Dataset')
 st.caption('Presented by Sahithi Sane')
 st.divider()
-
+'''
 # Load the Saved Models
 with open("Pickle_dt_clf.pkl", "rb") as file:
     rf_model = pkl.load(file)
@@ -71,7 +71,7 @@ with open("Pickle_xgb_clf.pkl", "rb") as file:
     xgb_model = pkl.load(file)
 with open("Pickle_rf_clf.pkl", "rb") as file:
     rf_model = pkl.load(file)
-
+'''
 # Load the dataset into the dataframe
 df_data = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/diabetes.csv')
 DATA_URL = ('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/ensembling.csv')
