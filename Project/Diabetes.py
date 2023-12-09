@@ -80,7 +80,7 @@ def load_data():
     data = pd.read_csv(DATA_URL, encoding='utf-8')
     data['Date'] = pd.to_datetime(data['Date']).dt.strftime('%Y-%m-%d')
     return data
-#csvFile = load_data()
+csvFile = load_data()
 df_temp = df_data
 
 
@@ -467,9 +467,7 @@ def encoding():
 # Plots for the models
 def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
     # Train the classifier
-    #model.fit(train_X, train_y)
-
-    # Predict on the test set
+    model.fit(train_X, train_y)
     y_pred_model = model.predict(test_X)
 
     # Calculate metrics
@@ -549,13 +547,13 @@ def model_analysis():
     if  data_button =="Logistic Regression":
         with st.expander("Understand what Logistic Regression is and how it works"):
             st.write("Logistic Regression is a statistical technique used for binary classification. It estimates the probability of an observation belonging to one of two classes. It uses a sigmoid function to transform input features into probabilities and draws a decision boundary to separate classes. The model learns from labeled data, assigns importance to features, and is evaluated based on its predictive performance using metrics like accuracy, precision, recall, and F1-score.")                                                    
-        model = lr_model
+        model = LogisticRegression()
     elif  data_button == "Random Forest":
         st.write("Random Forest is a powerful machine learning technique that builds numerous decision trees using random subsets of data and features. These individual trees work together by voting (for classification problems) or averaging (for regression tasks) to produce predictions. It's highly effective, particularly with large datasets, as it mitigates overfitting issues commonly found in single decision trees. Due to its ability to create diverse models and combine their outputs, Random Forest is known for its accuracy and robustness across different applications in machine learning")
-        model = rf_model
+        model = RandomForestClassifier()
     elif  data_button == "Support Vector Machine":
         st.markdown("Support Vector Machine (SVM) is a supervised machine learning algorithm used for classification and regression tasks. It works by finding the hyperplane that best separates different classes in the feature space, maximizing the margin between them. SVM is effective in high-dimensional spaces and can handle both linear and non-linear relationships through the use of kernel functions.")
-        model = svm_model
+        model = SVC(kernel='linear')
     elif  data_button == "K Nearest Neighbour":
         with st.expander("Understand what K-Nearest Neighbors is and how it works"):
             st.write("K-Nearest Neighbors (KNN) is a machine learning algorithm used for classification and regression. It predicts the class or value of a new data point by considering the majority (for classification) or averaging (for regression) the 'K' nearest data points in the training set based on a chosen distance measure, typically Euclidean distance. Its simplicity makes it easy to understand, but it can be computationally intensive for large datasets during the prediction phase. The choice of 'K' influences the model's performance.")
@@ -563,25 +561,26 @@ def model_analysis():
     elif  data_button == "Naive Bayes":
         with st.expander("Understand what Naive Bayes is and how it works"):
             st.write("Naive Bayes is a classification algorithm based on Bayes' theorem. It assumes features are normally distributed and independent. It calculates the probability that a data point belongs to a particular class using Gaussian (normal) distributions for numeric features. This method is commonly used in text classification, medical diagnosis, and similar tasks where feature independence and Gaussian distribution hold. Despite its simplicity, it's often effective and computationally efficient, especially with smaller datasets.")       
-        model = nb_model
+        model = GaussianNB()
     elif  data_button == "Gradient Boosting Classifier":
         with st.expander("Gradient Boosting Classifier is an ensemble machine learning algorithm that builds a strong predictive model by combining multiple weak learners, typically decision trees, sequentially. It works by fitting each tree to the residuals (errors) of the preceding one, adjusting the model iteratively to minimize the overall prediction errors. This iterative process strengthens the model's ability to capture complex relationships in the data, resulting in a powerful and accurate classifier."):
             st.write("")
-        model = gb_model
+        model = GradientBoostingClassifier(n_estimators=50,learning_rate=0.2)
     elif  data_button == "Decision Tree":
         with st.expander("Understand what Naive Bayes is and how it works"):
             st.write("Decision tree modeling is a machine learning technique that creates a tree-like structure to make decisions based on input data. It selects features to split the data into subsets, aiming to make the subsets as homogeneous as possible regarding the target variable. This process continues recursively until a stopping criterion is met. When new data is given, the model traverses the tree to predict the outcome based on the input features. Advantages include interpretability and the ability to capture non-linear relationships.")
             st.write(" ")
             st.write("However, decision trees can also suffer from certain limitations like overfitting (creating overly complex trees that perform well on training data but poorly on unseen data), instability with small variations in data, and sometimes not achieving the highest predictive accuracy compared to other algorithms.")                                    
-        model = dt_model
+        model = RandomForestClassifier(n_estimators = 11, criterion = 'entropy', random_state = 42)
     elif  data_button == "XG Boost":
         with st.expander("Understand what XG Boost is and how it works"):
             st.write("XGBoost (Extreme Gradient Boosting) is a powerful machine learning algorithm that belongs to the ensemble learning family. It builds a series of decision trees and combines their predictions to improve accuracy and reduce overfitting. XGBoost employs a gradient boosting framework, optimizing the model by minimizing the residuals of the previous trees, resulting in a highly efficient and effective algorithm for both classification and regression tasks.")
-        model = xgb_model
+        model = xgb = XGBClassifier()
     elif  data_button == "LightGBM":
         with st.expander("Understand what LightGBM is and how it works"):
             st.write("LightGBM is a gradient boosting framework that efficiently trains decision tree ensembles. It employs a histogram-based approach for binning continuous features, reducing memory usage and speeding up training. LightGBM uses a leaf-wise tree growth strategy, optimizing for computational efficiency and scalability, making it particularly well-suited for large datasets.")
-        model = lgbm_model  
+        opt_parameters =  grid_search.best_params_
+        model = lgbm.LGBMClassifier(**opt_parameters) 
     else:
         st.error("Invalid model selection.")
 
@@ -680,7 +679,20 @@ def eda():
         model_analysis()
     
     if st.checkbox('Ensembling'):
-        st.write('Heatmap and other metrix for Ensembled model with Maximum Voting of 9 Models.')     
+        st.write('Heatmap and other metrix for Ensembled model with Maximum Voting of 9 Models.')   
+        fig = plt.figure()
+        cm = confusion_matrix(csvFile['Actual'], csvFile['Ensembling'])
+
+        # Display the confusion matrix heatmap using Seaborn
+        sns.heatmap(pd.DataFrame(cm), annot=True, fmt='g', cmap='Blues', cbar=False)
+        plt.xlabel('Predicted labels')
+        plt.ylabel('True labels')
+
+        # Display the confusion matrix heatmap using Streamlit
+        st.pyplot(fig)
+        # Display accuracy
+        ac = accuracy_score(csvFile['Actual'], csvFile['Ensembling'])
+        st.subheader(f"Accuracy: {ac:.2f}")
 
 def bio():
     st.write("Hi there! I am Sahithi Sane, currently pursuing Master's in Data Science at Michigan State University. I'm am Pythonista, Data Science and Artificial intelligence enthusiast, passionate about extracting insights from data using various analytical tools and techniques. ")
