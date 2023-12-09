@@ -554,7 +554,7 @@ def model_analysis():
         with st.expander("Understand what LightGBM is and how it works"):
             st.write("LightGBM is a gradient boosting framework that efficiently trains decision tree ensembles. It employs a histogram-based approach for binning continuous features, reducing memory usage and speeding up training. LightGBM uses a leaf-wise tree growth strategy, optimizing for computational efficiency and scalability, making it particularly well-suited for large datasets.")
         opt_parameters =  grid_search.best_params_
-        model = lgbm.LGBMClassifier(**opt_parameters) 
+        model = GaussianNB() 
     else:
         st.error("Invalid model selection.")
 
