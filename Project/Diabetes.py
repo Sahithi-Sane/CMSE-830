@@ -440,10 +440,11 @@ def encoding():
      
 
 # Plots for the models
-def calculate_metrics_and_plots_interactive(clf, test_X, test_y):
+def calculate_metrics_and_plots_interactive(model, test_X, test_y, train_X,train_y):
     # Predict on the test set
-    y_pred = clf.predict(test_X)
-    y_pred_proba = clf.predict_proba(test_X)[:, 1]
+    model.fit(train_X,train_y)
+    y_pred = model.predict(test_X)
+    y_pred_proba = model.predict_proba(test_X)[:, 1]
 
     # Calculate confusion matrix
     cm = confusion_matrix(test_y, y_pred)
@@ -557,7 +558,7 @@ def model_analysis():
         st.error("Invalid model selection.")
 
     # Calculate metrics and create plots
-    fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots_interactive(model, test_X, test_y)
+    fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots_interactive(model, test_X, test_y, train_X,train_y)
     plt.show()
     print("Accuracy: {:.2f}".format(accuracy))
     print("Precision: {:.2f}".format(precision))
