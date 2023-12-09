@@ -440,65 +440,62 @@ def encoding():
      
 
 # Plots for the models
-def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
-    # Train the classifier
-    model.fit(train_X, train_y)
-    y_pred_model = model.predict(test_X)
+def calculate_metrics_and_plots_interactive(clf, test_X, test_y):
+    # Predict on the test set
+    y_pred = clf.predict(test_X)
+    y_pred_proba = clf.predict_proba(test_X)[:, 1]
 
-    # Calculate metrics
-    ac = accuracy_score(test_y, y_pred_model)
-    rc = roc_auc_score(test_y, y_pred_model)
-    prec = precision_score(test_y, y_pred_model)
-    rec = recall_score(test_y, y_pred_model)
-    f1 = f1_score(test_y, y_pred_model)
+    # Calculate confusion matrix
+    cm = confusion_matrix(test_y, y_pred)
 
-    # Confusion Matrix
-    cm = confusion_matrix(test_y, y_pred_model)
-    conf_matrix = cm.astype(int)
-
-    layout = {
-        "title": "Confusion Matrix", 
-        "xaxis": {"title": "Predicted value"}, 
-        "yaxis": {"title": "Real value"}
-    }
-
-    fig = go.Figure(data=go.Heatmap(z=conf_matrix,
-                                    x=['Actual Diabetic','Actual Non Diabetic'],
-                                    y=['Predictid Diabetic','Predicted Non Diabetic'],
-                                    hoverongaps=False),
-                    layout=layout)
-
-    # ROC Curve
-    fpr, tpr, _ = roc_curve(test_y, model.predict_proba(test_X)[:, 1])
+    # Calculate ROC curve and AUC
+    fpr, tpr, _ = roc_curve(test_y, y_pred_proba)
     roc_auc = auc(fpr, tpr)
 
-    # Precision-Recall Curve
-    precision, recall, _ = precision_recall_curve(test_y, model.predict_proba(test_X)[:, 1])
+    # Calculate precision-recall curve and AUC
+    precision, recall, _ = precision_recall_curve(test_y, y_pred_proba)
     pr_auc = auc(recall, precision)
 
-    # ROC Curve
-    fig_roc = go.Figure()
-    fig_roc.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines', name='ROC curve (AUC={:.2f})'.format(roc_auc)))
-    fig_roc.update_layout(title='Receiver Operating Characteristic (ROC) Curve',
-                          xaxis=dict(title='False Positive Rate'),
-                          yaxis=dict(title='True Positive Rate'),
-                          showlegend=True)
+    # Calculate additional metrics
+    accuracy = accuracy_score(test_y, y_pred)
+    precision_score_val = precision_score(test_y, y_pred)
+    recall_score_val = recall_score(test_y, y_pred)
+    f1_score_val = f1_score(test_y, y_pred)
 
-    # Precision-Recall Curve
-    fig_pr = go.Figure()
-    fig_pr.add_trace(go.Scatter(x=recall, y=precision, mode='lines', name='Precision-Recall curve (AUC={:.2f})'.format(pr_auc)))
-    fig_pr.update_layout(title='Precision-Recall Curve',
-                         xaxis=dict(title='Recall'),
-                         yaxis=dict(title='Precision'),
-                         showlegend=True)
+    # Plot interactive confusion matrix
+    fig, ax = plt.subplots()
+    cax = ax.matshow(cm, cmap='Blues')
+    plt.title('Confusion Matrix')
+    plt.colorbar(cax)
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            plt.text(j, i, str(cm[i, j]), va='center', ha='center', fontsize=12)
 
-    # Metrics Bar Graph
-    metrics_labels = ['Accuracy', 'ROC AUC', 'Precision', 'Recall', 'F1-Score']
-    metrics_values = [ac, rc, prec, rec, f1]
+    # Plot interactive ROC curve
+    fig_roc, ax_roc = plt.subplots()
+    ax_roc.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = {:.2f})'.format(roc_auc))
+    ax_roc.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    ax_roc.set_title('Receiver Operating Characteristic')
+    ax_roc.set_xlabel('False Positive Rate')
+    ax_roc.set_ylabel('True Positive Rate')
+    ax_roc.legend(loc='lower right')
 
-    fig_metrics = go.Figure()
-    fig_metrics.add_trace(go.Bar(x=metrics_labels, y=metrics_values, name='Metrics'))
-    fig_metrics.update_layout(barmode='group', xaxis=dict(title='Metrics'), yaxis=dict(title='Value'))
+    # Plot interactive precision-recall curve
+    fig_pr, ax_pr = plt.subplots()
+    ax_pr.plot(recall, precision, color='blue', lw=2, label='Precision-Recall curve (area = {:.2f})'.format(pr_auc))
+    ax_pr.set_title('Precision-Recall Curve')
+    ax_pr.set_xlabel('Recall')
+    ax_pr.set_ylabel('Precision')
+    ax_pr.legend(loc='upper right')
+
+    # Plot bar graph for metrics
+    metrics_labels = ['Accuracy', 'Precision', 'Recall', 'F1 Score']
+    metrics_values = [accuracy, precision_score_val, recall_score_val, f1_score_val]
+
+    fig_metrics, ax_metrics = plt.subplots()
+    ax_metrics.bar(metrics_labels, metrics_values, color=['lightblue', 'lightgreen', 'lightcoral', 'lightsalmon'])
+    ax_metrics.set_title('Metrics')
+    ax_metrics.set_ylabel('Score')
 
     return fig, fig_roc, fig_pr, fig_metrics
 
@@ -560,21 +557,12 @@ def model_analysis():
         st.error("Invalid model selection.")
 
     # Calculate metrics and create plots
-    fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots(model, train_X, train_y, test_X, test_y)
-
-    # Display Plots
-    st.subheader("Confusion Matrix")
-    st.plotly_chart(fig_cm)
-
-    st.subheader("ROC Curve")
-    st.plotly_chart(fig_roc)
-
-    st.subheader("Precision-Recall Curve")
-    st.plotly_chart(fig_pr)
-
-    st.subheader("Metrics Bar Graph")
-    st.plotly_chart(fig_metrics)
-
+    fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots_interactive(clf, test_X, test_y)
+    plt.show()
+    print("Accuracy: {:.2f}".format(accuracy))
+    print("Precision: {:.2f}".format(precision))
+    print("Recall: {:.2f}".format(recall))
+    print("F1 Score: {:.2f}".format(f1))
 
 # Exploratory Data Analsis
 def eda():
@@ -680,6 +668,7 @@ def bio():
     st.write(" ")
     st.write("Feel free to reach out if you have any questions or just want to discuss data science, philosophy, or anything else that piques your curiosity!")
     st.write(" ")
+    '''
     file = 'https://github.com/Sahithi-Sane/CMSE-830/blob/main/Project/me.jpeg'
     if file is not None:
         image = Image.open(file)
@@ -687,7 +676,7 @@ def bio():
                  caption=f"You amazing image has shape",
                 use_column_width=True,)
    # st.image('me.jpeg', width=300)
-
+   '''
 # Function for the Prediction of the reults using ML Models
 def predict():
     st.sidebar.header('Diabetes Prediction')
@@ -763,8 +752,8 @@ The main aim is to make use of significant features, design a prediction algorit
             "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
             "Have you ever wondered what your heart health says about you?"
             )
-        image_url = "1.png" 
-        st.sidebar.image(image_url, use_column_width=True)
+        #image_url = "1.png" 
+        #st.sidebar.image(image_url, use_column_width=True)
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "Predict Diabetes":
         read_me_0.empty()
@@ -775,8 +764,8 @@ The main aim is to make use of significant features, design a prediction algorit
             "Have you ever wondered what your heart health says about you?"
             )
         image_url = "1.png" 
-        st.sidebar.image(image_url, use_column_width=True)
-        st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
+        #st.sidebar.image(image_url, use_column_width=True)
+        #st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "About":
         print()
@@ -785,8 +774,8 @@ The main aim is to make use of significant features, design a prediction algorit
             "Have you ever wondered what your heart health says about you?"
             )
         image_url = "1.png" 
-        st.sidebar.image(image_url, use_column_width=True)
-        st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
+        #st.sidebar.image(image_url, use_column_width=True)
+        #st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "Bio":
         read_me_0.empty()
@@ -796,8 +785,8 @@ The main aim is to make use of significant features, design a prediction algorit
             "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
             "Have you ever wondered what your heart health says about you?"
             )
-        image_url = "1.png" 
-        st.sidebar.image(image_url, use_column_width=True)
+        #image_url = "1.png" 
+        #st.sidebar.image(image_url, use_column_width=True)
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
 if __name__ == '__main__':
