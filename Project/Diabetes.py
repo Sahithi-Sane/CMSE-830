@@ -559,7 +559,18 @@ def model_analysis():
 
     # Calculate metrics and create plots
     fig_cm, fig_roc, fig_pr, fig_metrics = calculate_metrics_and_plots_interactive(model, test_X, test_y, train_X,train_y)
-    plt.show()
+    # Display figures
+    st.subheader('Confusion Matrix')
+    st.pyplot(fig_cm)
+
+    st.subheader('ROC Curve')
+    st.pyplot(fig_roc)
+
+    st.subheader('Precision-Recall Curve')
+    st.pyplot(fig_pr)
+
+    st.subheader('Metrics Bar Graph')
+    st.pyplot(fig_metrics)
     
 
 # Exploratory Data Analsis
@@ -750,8 +761,6 @@ The main aim is to make use of significant features, design a prediction algorit
             "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
             "Have you ever wondered what your heart health says about you?"
             )
-        #image_url = "1.png" 
-        #st.sidebar.image(image_url, use_column_width=True)
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "Predict Diabetes":
         read_me_0.empty()
@@ -761,9 +770,7 @@ The main aim is to make use of significant features, design a prediction algorit
             "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
             "Have you ever wondered what your heart health says about you?"
             )
-        image_url = "1.png" 
-        #st.sidebar.image(image_url, use_column_width=True)
-        #st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
+        st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "About":
         print()
@@ -771,9 +778,7 @@ The main aim is to make use of significant features, design a prediction algorit
             "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
             "Have you ever wondered what your heart health says about you?"
             )
-        image_url = "1.png" 
-        #st.sidebar.image(image_url, use_column_width=True)
-        #st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
+        st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "Bio":
         read_me_0.empty()
@@ -783,8 +788,6 @@ The main aim is to make use of significant features, design a prediction algorit
             "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
             "Have you ever wondered what your heart health says about you?"
             )
-        #image_url = "1.png" 
-        #st.sidebar.image(image_url, use_column_width=True)
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
 if __name__ == '__main__':
