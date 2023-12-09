@@ -760,8 +760,8 @@ The main aim is to make use of significant features, design a prediction algorit
         read_me.empty()
         eda()    
         st.sidebar.write(
-            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
-            "Have you ever wondered what your heart health says about you?"
+            "Welcome to a journey of self-discovery through your health story! 🌟\n\n"
+            "Have you ever wondered do you have diabetes or not?"
             )
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "Predict Diabetes":
@@ -769,16 +769,16 @@ The main aim is to make use of significant features, design a prediction algorit
         read_me.empty()
         predict()
         st.sidebar.write(
-            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
-            "Have you ever wondered what your heart health says about you?"
+            "Welcome to a journey of self-discovery through your health story! 🌟\n\n"
+            "Have you ever wondered do you have diabetes or not?"
             )
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
     elif choice == "About":
         print()
         st.sidebar.write(
-            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
-            "Have you ever wondered what your heart health says about you?"
+            "Welcome to a journey of self-discovery through your health story! 🌟\n\n"
+            "Have you ever wondered do you have diabetes or not?"
             )
         st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
@@ -787,10 +787,9 @@ The main aim is to make use of significant features, design a prediction algorit
         read_me.empty()
         bio()    
         st.sidebar.write(
-            "Welcome to a journey of self-discovery through your heart's story! 🌟\n\n"
-            "Have you ever wondered what your heart health says about you?"
+            "Welcome to my story! 🌟\n\n"
+            "Here is a brief about myself and my motivation to stay in the technology?"
             )
-        st.sidebar.info("This App allows users to input their health information and receive an estimate of their risk for Diabetes. It could help them take necessary precautions and medication accordingly.")
         sidebar_placeholder = st.sidebar.empty()
 if __name__ == '__main__':
     main()
