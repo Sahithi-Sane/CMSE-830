@@ -467,7 +467,7 @@ def encoding():
 # Plots for the models
 def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
     # Train the classifier
-    model.fit(train_X, train_y)
+    #model.fit(train_X, train_y)
 
     # Predict on the test set
     y_pred_model = model.predict(test_X)
