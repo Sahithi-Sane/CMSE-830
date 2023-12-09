@@ -8,6 +8,8 @@ from plotly.offline import download_plotlyjs, init_notebook_mode, plot, iplot
 import plotly.tools as tls
 import plotly.figure_factory as ff
 import squarify
+from PIL import Image
+import pickle as pkl
 import altair as alt
 import plotly.express as px
 import streamlit as st
@@ -25,7 +27,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_validate
 import plotly.graph_objects as go
-from sklearn.metrics import roc_curve, precision_recall_curve, auc, confusion_matrix, accuracy_score,make_scorer
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_curve, precision_recall_curve, auc, accuracy_score,make_scorer
 from sklearn.metrics import precision_score, recall_score, f1_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
@@ -47,18 +50,40 @@ st.title('Diabetis Dataset')
 st.caption('Presented by Sahithi Sane')
 st.divider()
 
+# Load the Saved Models
+with open("Pickle_dt_clf.pkl", "rb") as file:
+    rf_model = pkl.load(file)
+with open("Pickle_gb_clf.pkl", "rb") as file:
+    gb_model = pkl.load(file)
+with open("Pickle_logestic_clf.pkl", "rb") as file:
+    lr_model = pkl.load(file)
+with open("Pickle_svm_clf.pkl", "rb") as file:
+    svm_model = pkl.load(file)
+with open("Pickle_dt_clf.pkl", "rb") as file:
+    dt_model = pkl.load(file)
+with open("Pickle_lgbm_clf.pkl", "rb") as file:
+    lgbm_model = pkl.load(file)
+with open("Pickle_knn_clf.pkl", "rb") as file:
+    knn_model = pkl.load(file)
+with open("Pickle_nb_clf.pkl", "rb") as file:
+    nb_model = pkl.load(file)
+with open("Pickle_xgb_clf.pkl", "rb") as file:
+    xgb_model = pkl.load(file)
+with open("Pickle_rf_clf.pkl", "rb") as file:
+    rf_model = pkl.load(file)
+
 # Load the dataset into the dataframe
 df_data = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/diabetes.csv')
-#csvFile = pd.read_csv('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/ensembling.csv')
+DATA_URL = ('https://raw.githubusercontent.com/Sahithi-Sane/CMSE-830/main/Project/ensembling.csv')
+@st.cache
+def load_data():
+    data = pd.read_csv(DATA_URL, encoding='utf-8')
+    data['Date'] = pd.to_datetime(data['Date']).dt.strftime('%Y-%m-%d')
+    return data
+#csvFile = load_data()
 df_temp = df_data
 
-def load_weights_from_github(url):
-    response = requests.get(url)
-    if response.status_code == 200:
-        return response.content
-    else:
-        st.error(f"Failed to fetch weights from {url}")
-        return None
+
 
 D = df_data[(df_data['Outcome'] != 0)]
 H = df_data[(df_data['Outcome'] == 0)]
@@ -437,6 +462,7 @@ def encoding():
     st.subheader("Processed Data")
     st.caption("View the first 10 rows of the dataset")
     st.table(df_processed.head(10))
+     
 
 # Plots for the models
 def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
@@ -455,6 +481,19 @@ def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
 
     # Confusion Matrix
     cm = confusion_matrix(test_y, y_pred_model)
+    confusion_matrix = cm.astype(int)
+
+    layout = {
+        "title": "Confusion Matrix", 
+        "xaxis": {"title": "Predicted value"}, 
+        "yaxis": {"title": "Real value"}
+    }
+
+    fig = go.Figure(data=go.Heatmap(z=confusion_matrix,
+                                    x=['Actual Diabetic','Actual Non Diabetic'],
+                                    y=['Predictid Diabetic','Predicted Non Diabetic'],
+                                    hoverongaps=False),
+                    layout=layout)
 
     # ROC Curve
     fpr, tpr, _ = roc_curve(test_y, model.predict_proba(test_X)[:, 1])
@@ -463,13 +502,6 @@ def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
     # Precision-Recall Curve
     precision, recall, _ = precision_recall_curve(test_y, model.predict_proba(test_X)[:, 1])
     pr_auc = auc(recall, precision)
-
-    # Create Plots
-    # Confusion Matrix Heatmap
-    fig_cm = go.Figure()
-    fig_cm.add_trace(go.Heatmap(z=cm[::-1], x=['Predicted 0', 'Predicted 1'], y=['Actual 1', 'Actual 0'],
-                                colorscale='Viridis', showscale=False))
-    fig_cm.update_layout(title='Confusion Matrix', xaxis=dict(title='Predicted Class'), yaxis=dict(title='Actual Class'))
 
     # ROC Curve
     fig_roc = go.Figure()
@@ -495,7 +527,7 @@ def calculate_metrics_and_plots(model,train_X, train_y, test_X, test_y):
     fig_metrics.add_trace(go.Bar(x=metrics_labels, y=metrics_values, name='Metrics'))
     fig_metrics.update_layout(barmode='group', xaxis=dict(title='Metrics'), yaxis=dict(title='Value'))
 
-    return fig_cm, fig_roc, fig_pr, fig_metrics
+    return fig, fig_roc, fig_pr, fig_metrics
 
 # Model training, metrics
 def model_analysis():
@@ -515,23 +547,41 @@ def model_analysis():
     # Model selection
     data_button = st.selectbox('Please choose preferred Model to get the anaysis', ["Logistic Regression", "Random Forest","Support Vector Machine","K Nearest Neighbour","Naive Bayes","Gradient Boosting Classifier","Decision Tree","XG Boost","LightGBM"])
     if  data_button =="Logistic Regression":
-        model = LogisticRegression()
+        with st.expander("Understand what Logistic Regression is and how it works"):
+            st.write("Logistic Regression is a statistical technique used for binary classification. It estimates the probability of an observation belonging to one of two classes. It uses a sigmoid function to transform input features into probabilities and draws a decision boundary to separate classes. The model learns from labeled data, assigns importance to features, and is evaluated based on its predictive performance using metrics like accuracy, precision, recall, and F1-score.")                                                    
+        model = lr_model
     elif  data_button == "Random Forest":
-        model = RandomForestClassifier()
+        st.write("Random Forest is a powerful machine learning technique that builds numerous decision trees using random subsets of data and features. These individual trees work together by voting (for classification problems) or averaging (for regression tasks) to produce predictions. It's highly effective, particularly with large datasets, as it mitigates overfitting issues commonly found in single decision trees. Due to its ability to create diverse models and combine their outputs, Random Forest is known for its accuracy and robustness across different applications in machine learning")
+        model = rf_model
     elif  data_button == "Support Vector Machine":
-        model = SVC(kernel='linear')
+        st.markdown("Support Vector Machine (SVM) is a supervised machine learning algorithm used for classification and regression tasks. It works by finding the hyperplane that best separates different classes in the feature space, maximizing the margin between them. SVM is effective in high-dimensional spaces and can handle both linear and non-linear relationships through the use of kernel functions.")
+        model = svm_model
     elif  data_button == "K Nearest Neighbour":
+        with st.expander("Understand what K-Nearest Neighbors is and how it works"):
+            st.write("K-Nearest Neighbors (KNN) is a machine learning algorithm used for classification and regression. It predicts the class or value of a new data point by considering the majority (for classification) or averaging (for regression) the 'K' nearest data points in the training set based on a chosen distance measure, typically Euclidean distance. Its simplicity makes it easy to understand, but it can be computationally intensive for large datasets during the prediction phase. The choice of 'K' influences the model's performance.")
         model = KNeighborsClassifier(n_neighbors=3)
     elif  data_button == "Naive Bayes":
-        model = GaussianNB()
+        with st.expander("Understand what Naive Bayes is and how it works"):
+            st.write("Naive Bayes is a classification algorithm based on Bayes' theorem. It assumes features are normally distributed and independent. It calculates the probability that a data point belongs to a particular class using Gaussian (normal) distributions for numeric features. This method is commonly used in text classification, medical diagnosis, and similar tasks where feature independence and Gaussian distribution hold. Despite its simplicity, it's often effective and computationally efficient, especially with smaller datasets.")       
+        model = nb_model
     elif  data_button == "Gradient Boosting Classifier":
-        model = GradientBoostingClassifier(n_estimators=50,learning_rate=0.2)
+        with st.expander("Gradient Boosting Classifier is an ensemble machine learning algorithm that builds a strong predictive model by combining multiple weak learners, typically decision trees, sequentially. It works by fitting each tree to the residuals (errors) of the preceding one, adjusting the model iteratively to minimize the overall prediction errors. This iterative process strengthens the model's ability to capture complex relationships in the data, resulting in a powerful and accurate classifier."):
+            st.write("")
+        model = gb_model
     elif  data_button == "Decision Tree":
-        model = RandomForestClassifier(n_estimators = 11, criterion = 'entropy', random_state = 42)
+        with st.expander("Understand what Naive Bayes is and how it works"):
+            st.write("Decision tree modeling is a machine learning technique that creates a tree-like structure to make decisions based on input data. It selects features to split the data into subsets, aiming to make the subsets as homogeneous as possible regarding the target variable. This process continues recursively until a stopping criterion is met. When new data is given, the model traverses the tree to predict the outcome based on the input features. Advantages include interpretability and the ability to capture non-linear relationships.")
+            st.write(" ")
+            st.write("However, decision trees can also suffer from certain limitations like overfitting (creating overly complex trees that perform well on training data but poorly on unseen data), instability with small variations in data, and sometimes not achieving the highest predictive accuracy compared to other algorithms.")                                    
+        model = dt_model
     elif  data_button == "XG Boost":
-        model = XGBClassifier()
+        with st.expander("Understand what XG Boost is and how it works"):
+            st.write("XGBoost (Extreme Gradient Boosting) is a powerful machine learning algorithm that belongs to the ensemble learning family. It builds a series of decision trees and combines their predictions to improve accuracy and reduce overfitting. XGBoost employs a gradient boosting framework, optimizing the model by minimizing the residuals of the previous trees, resulting in a highly efficient and effective algorithm for both classification and regression tasks.")
+        model = xgb_model
     elif  data_button == "LightGBM":
-        model = XGBClassifier()    
+        with st.expander("Understand what LightGBM is and how it works"):
+            st.write("LightGBM is a gradient boosting framework that efficiently trains decision tree ensembles. It employs a histogram-based approach for binning continuous features, reducing memory usage and speeding up training. LightGBM uses a leaf-wise tree growth strategy, optimizing for computational efficiency and scalability, making it particularly well-suited for large datasets.")
+        model = lgbm_model  
     else:
         st.error("Invalid model selection.")
 
@@ -630,12 +680,20 @@ def eda():
         model_analysis()
     
     if st.checkbox('Ensembling'):
-        st.write('Heatmap and other metrix for Ensembled model with Maximum Voting of 9 Models.')
-        
-        
+        st.write('Heatmap and other metrix for Ensembled model with Maximum Voting of 9 Models.')     
 
 def bio():
-    fgd
+    st.write("Hi there! I am Sahithi Sane, currently pursuing Master's in Data Science at Michigan State University. I'm am Pythonista, Data Science and Artificial intelligence enthusiast, passionate about extracting insights from data using various analytical tools and techniques. ")
+    st.write(" ")
+    st.write("I have a strong academic background in data science, and mathematics. Have industrial experience in DataOps, MLOps, extensive dataset analysis, and predictive modeling. Adept at utilizing open-source technology, strong interpersonal skills, analytical skills, and a collaborative problem solver.")
+    st.write(" ")
+    st.write("Thriving on challenges, I engage in impactful endeavors that matter. When I'm not diving into data, I love spending time in nature, capturing moments through photography, and honing my culinary skills by experimenting with different cuisines.")
+    st.write(" ")
+    st.write("I'm excited to be a part of this project because it aligns perfectly with my passion for leveraging data to create meaningful solutions. I believe that by applying data science principles, we can solve real-world problems and make a positive difference.")
+    st.write(" ")
+    st.write("Feel free to reach out if you have any questions or just want to discuss data science, philosophy, or anything else that piques your curiosity!")
+    st.write(" ")
+    st.image('me.png', width=300)
 
 # Function for the Prediction of the reults using ML Models
 def predict():
